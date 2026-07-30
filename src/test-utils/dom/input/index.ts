@@ -12,4 +12,18 @@ export default class InputWrapper extends BaseInputWrapper {
   findClearButton(): ElementWrapper | null {
     return this.find(`.${inputSelectors['input-button-right']}`);
   }
+
+  /**
+   * Returns the prefix adornment element, or null if no prefix is set.
+   */
+  findPrefix(): ElementWrapper | null {
+    return this.find(`.${inputSelectors['input-prefix']}`);
+  }
+
+  /**
+   * Returns the suffix adornment element, or null if no suffix is set.
+   */
+  findSuffix(): ElementWrapper | null {
+    return this.find(`.${inputSelectors['input-suffix']}`);
+  }
 }

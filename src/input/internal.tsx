@@ -57,6 +57,9 @@ export interface InternalInputProps
   __skipNativeAttributesWarnings?: SkipWarnings;
   __inlineLabelText?: string;
   __fullWidth?: boolean;
+
+  prefix?: React.ReactNode;
+  suffix?: React.ReactNode;
 }
 
 function InternalInput(
@@ -101,6 +104,8 @@ function InternalInput(
     __inlineLabelText,
     __fullWidth,
     style,
+    prefix,
+    suffix,
     ...rest
   }: InternalInputProps,
   ref: Ref<HTMLInputElement>
@@ -125,6 +130,10 @@ function InternalInput(
     ? formFieldContext
     : rest;
 
+  const hasPrefix = !!prefix;
+  const hasSuffix = !!suffix;
+  const hasAdornment = hasPrefix || hasSuffix;
+
   const attributes: React.InputHTMLAttributes<HTMLInputElement> = {
     'aria-label': ariaLabel,
     // aria-labelledby has precedence over aria-label in accessible name calculation.
@@ -142,6 +151,7 @@ function InternalInput(
       __rightIcon && styles['input-has-icon-right'],
       __leftIcon && styles['input-has-icon-left'],
       __noBorderRadius && styles['input-has-no-border-radius'],
+      hasAdornment && styles['input-adorned'],
       {
         [styles['input-readonly']]: readOnly,
         [styles['input-invalid']]: invalid,
@@ -215,6 +225,24 @@ function InternalInput(
     />
   );
 
+  const inputWithLabel = __inlineLabelText ? (
+    <div className={clsx(styles['inline-label-wrapper'], __fullWidth && styles['inline-label-wrapper-full-width'])}>
+      <label htmlFor={controlId} className={styles['inline-label']}>
+        {__inlineLabelText}
+      </label>
+      <div
+        className={clsx(
+          styles['inline-label-trigger-wrapper'],
+          __fullWidth && styles['inline-label-trigger-wrapper-full-width']
+        )}
+      >
+        {mainInput}
+      </div>
+    </div>
+  ) : (
+    mainInput
+  );
+
   return (
     <div
       {...baseProps}
@@ -230,22 +258,37 @@ function InternalInput(
           <InternalIcon name={__leftIcon} variant={disabled || readOnly ? 'disabled' : __leftIconVariant} />
         </span>
       )}
-      {__inlineLabelText ? (
-        <div className={clsx(styles['inline-label-wrapper'], __fullWidth && styles['inline-label-wrapper-full-width'])}>
-          <label htmlFor={controlId} className={styles['inline-label']}>
-            {__inlineLabelText}
-          </label>
-          <div
-            className={clsx(
-              styles['inline-label-trigger-wrapper'],
-              __fullWidth && styles['inline-label-trigger-wrapper-full-width']
-            )}
-          >
-            {mainInput}
-          </div>
+      {hasAdornment ? (
+        // [prefix][divider][input][divider][suffix] — one flex bar owns the border and focus ring.
+        <div
+          className={clsx(
+            styles['input-adorned-container'],
+            invalid && styles['input-adorned-container-invalid'],
+            warning && !invalid && styles['input-adorned-container-warning'],
+            disabled && styles['input-adorned-container-disabled'],
+            readOnly && !disabled && styles['input-adorned-container-readonly']
+          )}
+        >
+          {hasPrefix && (
+            <>
+              <span className={styles['input-prefix']} aria-hidden="true">
+                {prefix}
+              </span>
+              <span className={styles['input-adornment-divider']} />
+            </>
+          )}
+          {inputWithLabel}
+          {hasSuffix && (
+            <>
+              <span className={styles['input-adornment-divider']} />
+              <span className={styles['input-suffix']} aria-hidden="true">
+                {suffix}
+              </span>
+            </>
+          )}
         </div>
       ) : (
-        mainInput
+        inputWithLabel
       )}
       {__rightIcon && (
         <span

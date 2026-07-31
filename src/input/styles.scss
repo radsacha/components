@@ -361,8 +361,8 @@
   min-block-size: unset;
 
   &:focus {
-    border-block: none;
-    border-inline: none;
+    border-block: 0;
+    border-inline: 0;
     box-shadow: none;
     outline: none;
   }

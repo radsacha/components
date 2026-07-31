@@ -125,6 +125,13 @@ function InternalInput(
   __rightIcon = __rightIcon ?? searchProps.__rightIcon;
   __onRightIconClick = __onRightIconClick ?? searchProps.__onRightIconClick;
 
+  // Search inputs use built-in search and clear icons that would overlap adornments.
+  const isSearch = type === 'search' || type === 'visualSearch';
+  if (isSearch) {
+    prefix = undefined;
+    suffix = undefined;
+  }
+
   const formFieldContext = useFormFieldContext(rest);
   const { ariaLabelledby, ariaDescribedby, controlId, invalid, warning } = __inheritFormFieldProps
     ? formFieldContext

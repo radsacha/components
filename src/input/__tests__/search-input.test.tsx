@@ -21,6 +21,43 @@ function getClearButton(wrapper: InputWrapper) {
   return wrapper.findClearButton()!.getElement();
 }
 
+describe('Prefix/suffix suppression for search type', () => {
+  test('does not render prefix when type is search', () => {
+    const wrapper = renderInput({ type: 'search', prefix: '$' });
+    expect(wrapper.findPrefix()).toBeNull();
+  });
+
+  test('does not render suffix when type is search', () => {
+    const wrapper = renderInput({ type: 'search', suffix: '%' });
+    expect(wrapper.findSuffix()).toBeNull();
+  });
+
+  test('does not render prefix and suffix together when type is search', () => {
+    const wrapper = renderInput({ type: 'search', prefix: 'https://', suffix: '.com' });
+    expect(wrapper.findPrefix()).toBeNull();
+    expect(wrapper.findSuffix()).toBeNull();
+  });
+
+  test('still renders clear button for populated search input with prefix/suffix props', () => {
+    const wrapper = renderInput({ type: 'search', value: 'query', prefix: '$', suffix: '%' });
+    expect(wrapper.findClearButton()).not.toBeNull();
+    expect(wrapper.findPrefix()).toBeNull();
+    expect(wrapper.findSuffix()).toBeNull();
+  });
+
+  test('renders prefix for non-search type', () => {
+    const wrapper = renderInput({ type: 'text', prefix: '$' });
+    expect(wrapper.findPrefix()).not.toBeNull();
+    expect(wrapper.findPrefix()!.getElement().textContent).toBe('$');
+  });
+
+  test('renders suffix for non-search type', () => {
+    const wrapper = renderInput({ type: 'text', suffix: '%' });
+    expect(wrapper.findSuffix()).not.toBeNull();
+    expect(wrapper.findSuffix()!.getElement().textContent).toBe('%');
+  });
+});
+
 describe('Clear field', () => {
   const baseProps: Omit<InputProps, 'value'> = {
     type: 'search',

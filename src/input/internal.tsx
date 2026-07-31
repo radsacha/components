@@ -137,9 +137,16 @@ function InternalInput(
     ? formFieldContext
     : rest;
 
-  const hasPrefix = !!prefix;
-  const hasSuffix = !!suffix;
+  const hasAdornmentContent = (content: React.ReactNode) =>
+    content !== null && content !== undefined && typeof content !== 'boolean' && content !== '';
+  const hasPrefix = hasAdornmentContent(prefix);
+  const hasSuffix = hasAdornmentContent(suffix);
   const hasAdornment = hasPrefix || hasSuffix;
+  const inputStyles = getInputStyles(style);
+  const nativeInputStyles =
+    hasAdornment && inputStyles ? { ...inputStyles, borderRadius: undefined, borderWidth: undefined } : inputStyles;
+  const adornedContainerStyles =
+    hasAdornment && inputStyles ? { ...inputStyles, paddingBlock: undefined, paddingInline: undefined } : undefined;
 
   const attributes: React.InputHTMLAttributes<HTMLInputElement> = {
     'aria-label': ariaLabel,
@@ -228,7 +235,7 @@ function InternalInput(
       nativeAttributes={nativeInputAttributes}
       skipWarnings={__skipNativeAttributesWarnings}
       ref={mergedRef}
-      style={getInputStyles(style)}
+      style={nativeInputStyles}
     />
   );
 
@@ -250,6 +257,28 @@ function InternalInput(
     mainInput
   );
 
+  const rightIcon = __rightIcon ? (
+    <span
+      className={styles['input-icon-right']}
+      {...(__rightIcon === 'close'
+        ? getAnalyticsMetadataAttribute({
+            action: 'clearInput',
+          } as Partial<GeneratedAnalyticsMetadataInputClearInput>)
+        : {})}
+    >
+      <InternalButton
+        // Used for test utils
+        className={styles['input-button-right']}
+        variant="inline-icon-pointer-target"
+        formAction="none"
+        iconName={__rightIcon}
+        onClick={__onRightIconClick}
+        ariaLabel={i18n('clearAriaLabel', clearAriaLabelOverride)}
+        disabled={disabled}
+      />
+    </span>
+  ) : null;
+
   return (
     <div
       {...baseProps}
@@ -266,7 +295,7 @@ function InternalInput(
         </span>
       )}
       {hasAdornment ? (
-        // [prefix][divider][input][divider][suffix] — one flex bar owns the border and focus ring.
+        // [prefix][divider][input][divider][suffix] - one flex bar owns the border and focus ring.
         <div
           className={clsx(
             styles['input-adorned-container'],
@@ -275,6 +304,7 @@ function InternalInput(
             disabled && styles['input-adorned-container-disabled'],
             readOnly && !disabled && styles['input-adorned-container-readonly']
           )}
+          style={adornedContainerStyles}
         >
           {hasPrefix && (
             <>
@@ -293,31 +323,12 @@ function InternalInput(
               </span>
             </>
           )}
+          {rightIcon}
         </div>
       ) : (
         inputWithLabel
       )}
-      {__rightIcon && (
-        <span
-          className={styles['input-icon-right']}
-          {...(__rightIcon === 'close'
-            ? getAnalyticsMetadataAttribute({
-                action: 'clearInput',
-              } as Partial<GeneratedAnalyticsMetadataInputClearInput>)
-            : {})}
-        >
-          <InternalButton
-            // Used for test utils
-            className={styles['input-button-right']}
-            variant="inline-icon-pointer-target"
-            formAction="none"
-            iconName={__rightIcon}
-            onClick={__onRightIconClick}
-            ariaLabel={i18n('clearAriaLabel', clearAriaLabelOverride)}
-            disabled={disabled}
-          />
-        </span>
-      )}
+      {!hasAdornment && rightIcon}
     </div>
   );
 }

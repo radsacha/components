@@ -5,6 +5,8 @@ import { render } from '@testing-library/react';
 
 import '../../__a11y__/to-validate-a11y';
 import Input, { InputProps } from '../../../lib/components/input';
+import InternalInput from '../../../lib/components/input/internal';
+import customCssProps from '../../../lib/components/internal/generated/custom-css-properties';
 import createWrapper from '../../../lib/components/test-utils/dom';
 
 import styles from '../../../lib/components/input/styles.css.js';
@@ -56,6 +58,41 @@ describe('prefix and suffix adornments', () => {
   test('renders arbitrary React nodes', () => {
     const { wrapper } = renderInput({ prefix: <span data-testid="custom">node</span> });
     expect(wrapper.findPrefix()!.find('[data-testid="custom"]')).not.toBeNull();
+  });
+
+  test('renders numeric adornments', () => {
+    const { wrapper } = renderInput({ prefix: 0, suffix: 0 });
+    expect(wrapper.findPrefix()!.getElement()).toHaveTextContent('0');
+    expect(wrapper.findSuffix()!.getElement()).toHaveTextContent('0');
+  });
+
+  test('applies custom Input styles to the adorned container', () => {
+    const style: InputProps['style'] = {
+      root: {
+        backgroundColor: { default: '#ffffff', hover: '#f2f3f3' },
+        borderColor: { default: '#000000', hover: '#111111' },
+        borderRadius: '6px',
+        borderWidth: '2px',
+        color: { default: '#222222', disabled: '#999999' },
+      },
+    };
+    const { wrapper } = renderInput({ prefix: '$', style });
+    const container = wrapper.findByClassName(styles['input-adorned-container'])!.getElement();
+
+    expect(container).toHaveStyle({ borderRadius: '6px', borderWidth: '2px' });
+    expect(container.style.getPropertyValue(customCssProps.styleBackgroundHover)).toBe('#f2f3f3');
+    expect(container.style.getPropertyValue(customCssProps.styleBorderColorHover)).toBe('#111111');
+    expect(container.style.getPropertyValue(customCssProps.styleColorDisabled)).toBe('#999999');
+  });
+
+  test('contains the right icon within the adorned focus container', () => {
+    const { container } = render(<InternalInput value="" onChange={() => {}} prefix="$" __rightIcon="settings" />);
+    const adornedContainer = container.querySelector(`.${styles['input-adorned-container']}`)!;
+    const rightIcon = container.querySelector(`.${styles['input-icon-right']}`)!;
+
+    expect(adornedContainer).toContainElement(rightIcon as HTMLElement);
+    rightIcon.querySelector('button')!.focus();
+    expect(adornedContainer.contains(document.activeElement)).toBe(true);
   });
 
   test.each([null, false, undefined, ''] as const)(
